@@ -1,0 +1,76 @@
+CREATE OR REPLACE DATABASE MANAGE_DB;
+USE DATABASE MANAGE_DB;
+CREATE OR REPLACE SCHEMA "external_stages";
+
+--let's create a stage for the AWS s3 bucket
+CREATE OR REPLACE STAGE aws_stage
+url = 's3://snowflakebucketsforsampy'
+CREDENTIALS=(aws_key_id='xxxxxxxxxxxxx' aws_secret_key ='xxxxxxxxxxxxxxx'); 
+
+--let's see the attributes associated with the stage.
+DESC STAGE aws_stage ;
+
+--let's list the contents of the stage (in this case the bucket)
+LIST @aws_stage; 
+
+--let's create a table
+CREATE OR REPLACE TABLE manage_db.public."simpledata" 
+(
+ Name VARCHAR(255),
+ Age INT,
+ Sex VARCHAR(10)
+); 
+
+-- let's make sure the table has no data
+select * from "simpledata";
+
+-- use the copy command to copy data from the stage to the snowflake table 
+COPY INTO manage_db.public."simpledata"
+from @aws_stage
+file_format = (type = csv field_delimiter=',' skip_header=1); 
+
+--let's make sure the table now has data
+select * from "simpledata";
+
+
+
+-------- FROM THE COURSE ------ 
+
+CREATE OR REPLACE stage MANAGE_DB."external_stages"."aws_stage_instructor"
+url = 's3://bucketsnowflakes3'
+credentials=(aws_key_id='ABCD_DUMMY_ID' aws_secret_key='1234abcd_key');
+
+-- DROP stage manage_db.public.aws_stage;
+-- DROP stage manage_db.public.aws_stage_2; 
+
+DESC STAGE manage_db."external_stages"."aws_stage_2"; 
+
+
+ALTER STAGE MANAGE_DB."external_stages"."aws_stage_instructor"
+    SET credentials=(aws_key_id='XYZ_DUMMY_ID' aws_secret_key='987xyz');
+
+CREATE OR REPLACE stage MANAGE_DB."external_stages"."aws_stage_instructor"
+url = 's3://bucketsnowflakes3';
+
+LIST @manage_db."external_stages"."aws_stage_instructor"; 
+
+-- let's create the table 
+
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC.ORDERS (
+    ORDER_ID VARCHAR(30),
+    AMOUNT INT,
+    PROFIT INT,
+    QUANTITY INT,
+    CATEGORY VARCHAR(30),
+    SUBCATEGORY VARCHAR(30));
+
+select * from OUR_FIRST_DB.PUBLIC.ORDERS LIMIT 10; 
+
+
+COPY INTO our_first_db.public.orders
+from @MANAGE_DB."external_stages"."aws_stage_instructor"
+files =('OrderDetails.csv')
+file_format = (type = csv field_delimiter=',' skip_header=1); 
+
+select sum(profit) from OUR_FIRST_DB.PUBLIC.ORDERS LIMIT 10; 
+select * from OUR_FIRST_DB.PUBLIC.ORDERS LIMIT 10; 
