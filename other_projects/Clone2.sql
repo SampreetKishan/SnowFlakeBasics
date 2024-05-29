@@ -1,0 +1,49 @@
+-- 1. Create exercise table
+-- Switch to role of accountadmin --
+-- USE ROLE ACCOUNTDMIN;
+-- USE DATABASE DEMO_DB;
+-- USE WAREHOUSE COMPUTE_WH;
+-- CREATE OR REPLACE TABLE DEMO_DB.PUBLIC.SUPPLIER
+-- AS
+-- SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."SUPPLIER";
+
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC."SUPPLIER"
+AS
+SELECT * FROM "SNOWFLAKE_SAMPLE_DATA"."TPCH_SF1"."SUPPLIER";
+
+-- 2. Create a clone of that table called SUPPLIER_CLONE
+CREATE OR REPLACE TABLE our_first_db.public."SUPPLIER_CLONE"
+CLONE OUR_FIRST_DB.PUBLIC."SUPPLIER"; 
+
+SELECT * FROM OUR_FIRST_DB.PUBLIC."SUPPLIER_CLONE"; 
+
+-- 3. Update the clone table and copy the query id
+
+-- UPDATE SUPPLIER_CLONE
+-- SET S_PHONE='###';
+ 
+--> Query ID:
+
+UPDATE OUR_FIRST_DB.PUBLIC."SUPPLIER_CLONE"
+SET S_PHONE='###';
+
+-- Query: 01b39f31-3201-0dd1-0007-8a420008498e
+
+--4. Create another clone from the updated clone using the time travel feature to clone before the update has been executed.
+
+CREATE OR REPLACE TABLE OUR_FIRST_DB.PUBLIC."SUPPLIER_CLONE_2"
+CLONE OUR_FIRST_DB.PUBLIC."SUPPLIER_CLONE" before(statement=>'01b39f31-3201-0dd1-0007-8a420008498e'); 
+
+SELECT * FROM OUR_FIRST_DB.PUBLIC."SUPPLIER_CLONE_2"; 
+
+-- Questions for this assignment
+-- If we delete the source table, does the clone still exist?
+
+DROP TABLE OUR_FIRST_DB.PUBLIC."SUPPLIER";
+
+SELECT * FROM OUR_FIRST_DB.PUBLIC."SUPPLIER_CLONE";
+SELECT * FROM OUR_FIRST_DB.PUBLIC."SUPPLIER_CLONE_2";
+
+-- Answer: Yes
+
+
